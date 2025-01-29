@@ -21,9 +21,12 @@ def load_molecule(file_path):
 def display_molecule(mol_data, file_format):
     """Muestra la molécula en 3D."""
     view = py3Dmol.view(width=500, height=500)
-    view.addModel(mol_data, file_format)
-    view.setStyle({"stick": {}})
-    view.zoomTo()
+    try:
+        view.addModel(mol_data, file_format)
+        view.setStyle({"stick": {}})
+        view.zoomTo()
+    except Exception as e:
+        st.error(f"Error al cargar la molécula: {e}")
     return view
 
 # Streamlit UI
@@ -45,13 +48,17 @@ if uploaded_file:
 # Lista de moléculas guardadas
 st.sidebar.title("Moléculas guardadas")
 saved_files = [f for f in os.listdir(SAVE_DIR) if f.endswith(".gjf") or f.endswith(".xyz")]
-selected_file = st.sidebar.selectbox("Selecciona una molécula", saved_files)
-
-if selected_file:
-    file_path = os.path.join(SAVE_DIR, selected_file)
-    file_format = "xyz" if selected_file.endswith(".xyz") else "mol"
-    mol_data = load_molecule(file_path)
+if saved_files:
+    selected_file = st.sidebar.selectbox("Selecciona una molécula", saved_files)
     
-    st.sidebar.text(f"Mostrando: {selected_file}")
-    view = display_molecule(mol_data, file_format)
-    st.sidebar.components.v1.html(view._repr_html_(), height=500)
+    if selected_file:
+        file_path = os.path.join(SAVE_DIR, selected_file)
+        file_format = "xyz" if selected_file.endswith(".xyz") else "mol"
+        mol_data = load_molecule(file_path)
+        
+        st.sidebar.text(f"Mostrando: {selected_file}")
+        view = display_molecule(mol_data, file_format)
+        st.sidebar.components.v1.html(view._repr_html_(), height=500)
+else:
+    st.sidebar.text("No hay moléculas guardadas aún.")
+
